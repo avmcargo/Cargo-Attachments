@@ -238,10 +238,18 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
     return;
   }
 
+  const importStatus = String(req.body.status || "accepted_china").trim();
+  const validStatuses = Object.keys(STATUS_LABELS);
+  if (!validStatuses.includes(importStatus)) {
+    res.status(400).json({ error: `Недопустимый статус: ${importStatus}` });
+    return;
+  }
+
   try {
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
+    // Parse as array of arrays to handle any column name/format
+    const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
 
     let updated = 0;
     let created = 0;
@@ -249,38 +257,64 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
 
     for (const row of rows) {
       try {
-        const trackingNumber = String(row["Трек-номер"] || row["trackingNumber"] || "").trim();
-        if (!trackingNumber) {
-          errors.push(`Пропущена строка без трек-номера`);
-          continue;
-        }
+        // First cell of each row is the tracking number
+        const raw = row[0];
+        if (!raw) continue;
+        const trackingNumber = String(raw).trim();
+        // Skip header row
+        if (!trackingNumber || trackingNumber.toLowerCase().includes("трек")) continue;
 
-        const updateData: Record<string, unknown> = {};
-        if (row["Статус"] || row["status"]) updateData.status = row["Статус"] || row["status"];
-        if (row["Вес"] || row["weight"]) updateData.weight = parseFloat(String(row["Вес"] || row["weight"]));
-        if (row["Стоимость"] || row["deliveryCost"]) updateData.deliveryCost = parseFloat(String(row["Стоимость"] || row["deliveryCost"]));
-        if (row["Комментарий"] || row["adminComment"]) updateData.adminComment = String(row["Комментарий"] || row["adminComment"]);
-
-        const [existing] = await db.select().from(packagesTable).where(eq(packagesTable.trackingNumber, trackingNumber));
+        const shouldArchive = importStatus === "delivered";
+        const [existing] = await db
+          .select()
+          .from(packagesTable)
+          .where(eq(packagesTable.trackingNumber, trackingNumber));
 
         if (existing) {
-          await db.update(packagesTable).set(updateData as Record<string, unknown>).where(eq(packagesTable.id, existing.id));
+          // Update status
+          await db
+            .update(packagesTable)
+            .set({ status: importStatus, archived: shouldArchive, updatedAt: new Date() })
+            .where(eq(packagesTable.id, existing.id));
+
+          // Add history entry
+          await db.insert(packageHistoryTable).values({
+            packageId: existing.id,
+            status: importStatus,
+            changedBy: user.id,
+          });
+
+          // Notify owner
+          await db.insert(notificationsTable).values({
+            userId: existing.userId,
+            packageId: existing.id,
+            message: `Статус посылки ${trackingNumber} изменён: ${STATUS_LABELS[importStatus]}`,
+            read: false,
+          });
+
           updated++;
         } else {
-          const description = String(row["Описание"] || row["description"] || "").trim() || null;
-          await db.insert(packagesTable).values({
-            trackingNumber,
-            description,
-            weight: updateData.weight as number | null ?? null,
-            deliveryCost: updateData.deliveryCost as number | null ?? null,
-            status: String(updateData.status || "created"),
-            adminComment: updateData.adminComment as string | null ?? null,
-            userId: user.id,
+          // Create new package assigned to the importing admin
+          const [newPkg] = await db
+            .insert(packagesTable)
+            .values({
+              trackingNumber,
+              status: importStatus,
+              archived: shouldArchive,
+              userId: user.id,
+            })
+            .returning();
+
+          await db.insert(packageHistoryTable).values({
+            packageId: newPkg.id,
+            status: importStatus,
+            changedBy: user.id,
           });
+
           created++;
         }
       } catch (e) {
-        errors.push(`Ошибка в строке: ${JSON.stringify(row)}`);
+        errors.push(`Ошибка для трек-номера: ${row[0]}`);
       }
     }
 

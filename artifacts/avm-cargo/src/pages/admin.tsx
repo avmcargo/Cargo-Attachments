@@ -56,6 +56,9 @@ export default function AdminDashboard() {
   const [editingPackage, setEditingPackage] = useState<any>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importStatus, setImportStatus] = useState('accepted_china');
+  const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -100,32 +103,40 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setImporting(true);
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('status', importStatus);
 
     try {
-      const res = await fetch('/api/packages/import', {
+      const res = await fetch(`${import.meta.env.BASE_URL}api/packages/import`.replace('//', '/'), {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include',
       });
       
-      if (!res.ok) throw new Error("Import failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Import failed");
+      }
       
       const result = await res.json();
       toast({ 
-        title: "Импорт завершен", 
+        title: "Импорт завершён", 
         description: `Обновлено: ${result.updated}. Создано: ${result.created}. Ошибок: ${result.errors?.length || 0}`
       });
       
+      setImportDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Ошибка", description: "Не удалось импортировать файл." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Ошибка импорта", description: error.message || "Не удалось импортировать файл." });
     } finally {
+      setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -156,6 +167,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
+      <ImportDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        importStatus={importStatus}
+        setImportStatus={setImportStatus}
+        fileInputRef={fileInputRef}
+        importing={importing}
+      />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-foreground">Панель управления</h1>
@@ -167,17 +186,17 @@ export default function AdminDashboard() {
             <Download className="w-4 h-4" />
             Экспорт
           </Button>
-          <Button variant="outline" className="gap-2" onClick={() => fileInputRef.current?.click()} data-testid="btn-import">
+          <Button variant="outline" className="gap-2" onClick={() => setImportDialogOpen(true)} data-testid="btn-import">
             <Upload className="w-4 h-4" />
             Импорт
-            <input 
-              type="file" 
-              className="hidden" 
-              ref={fileInputRef} 
-              accept=".xlsx,.xls,.csv" 
-              onChange={handleImport}
-            />
           </Button>
+          <input 
+            type="file" 
+            className="hidden" 
+            ref={fileInputRef} 
+            accept=".xlsx,.xls,.csv" 
+            onChange={handleImportFile}
+          />
           <Button className="gap-2 font-bold" data-testid="btn-scan">
             <ScanLine className="w-4 h-4" />
             Сканировать
@@ -366,6 +385,56 @@ export default function AdminDashboard() {
         />
       )}
     </div>
+  );
+}
+
+function ImportDialog({ open, onClose, importStatus, setImportStatus, fileInputRef, importing }: any) {
+  const statuses = [
+    { value: 'created', label: 'Создана' },
+    { value: 'accepted_china', label: 'Принята на китайском складе' },
+    { value: 'departed_china', label: 'Выехала с китайского склада' },
+    { value: 'arrived_almaty', label: 'Прибыла в Алматы' },
+    { value: 'departed_almaty', label: 'Выехала из Алматы' },
+    { value: 'arrived_city', label: 'Поступила в город получателя' },
+    { value: 'ready_pickup', label: 'Готова к выдаче' },
+    { value: 'delivered', label: 'Выдана' },
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Импорт трек-номеров из Excel</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
+          <p className="text-sm text-muted-foreground">
+            Загрузите файл .xlsx с одной колонкой «Трек Номера». Все посылки получат выбранный статус.
+            Если посылка уже есть в базе — статус обновится. Если нет — будет создана.
+          </p>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold">Статус для применения</label>
+            <Select value={importStatus} onValueChange={setImportStatus}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map(s => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            className="w-full gap-2"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+          >
+            <Upload className="w-4 h-4" />
+            {importing ? 'Импортируется...' : 'Выбрать файл и импортировать'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
