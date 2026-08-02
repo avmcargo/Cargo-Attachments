@@ -29,9 +29,11 @@ export default function Home() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-muted-foreground text-sm mr-4">
-            <Phone className="w-4 h-4" />
-            <span>+7 (777) 123-45-67</span>
+          <div className="hidden md:flex items-center gap-4 text-muted-foreground text-sm mr-4">
+            <a href="https://wa.me/77066517323" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <Phone className="w-4 h-4" />
+              <span>+7 706 651-73-23</span>
+            </a>
           </div>
           {user ? (
             <Link href={user.role === 'admin' ? '/admin' : '/dashboard'}>
@@ -90,8 +92,19 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 px-6 text-center text-sm text-muted-foreground border-t border-border">
-        <p>© {new Date().getFullYear()} AVM CARGO. Все права защищены.</p>
+      <footer className="py-8 px-6 border-t border-border">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <p>© 2026 AVM CARGO. Все права защищены.</p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href="https://wa.me/77066517323" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+              WhatsApp: +7 706 651-73-23
+            </a>
+            <a href="https://instagram.com/cargo_rudny" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+              @cargo_rudny
+            </a>
+            <span>г. Рудный, ул. Ленина 101</span>
+          </div>
+        </div>
       </footer>
     </div>
   );
