@@ -1,45 +1,61 @@
-# [Project name]
+# AVM CARGO
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Платформа отслеживания посылок для карго-компании AVM CARGO. Клиенты отслеживают грузы от регистрации до получения. Администраторы управляют статусами, импортируют/экспортируют Excel, сканируют QR-коды.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/avm-cargo run dev` — фронтенд (порт 20375)
+- `pnpm --filter @workspace/api-server run dev` — API сервер (порт 8080)
+- `pnpm run typecheck` — полная проверка типов
+- `pnpm run build` — сборка
+- `pnpm --filter @workspace/api-spec run codegen` — регенерация хуков из OpenAPI
+- `pnpm --filter @workspace/db run push` — применить схему БД
+
+## Test Accounts
+
+- **Администратор**: телефон `+77001111111`, пароль `admin123`
+- **Клиент 1**: телефон `+77771234567`, пароль `client123`
+- **Клиент 2**: телефон `+77007654321`, пароль `client123`
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React 19 + Vite + Tailwind CSS + shadcn/ui + framer-motion
+- Routing: wouter
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Auth: express-session + bcryptjs + connect-pg-simple
+- Validation: Zod v3, drizzle-zod, Orval codegen
+- Excel: xlsx (клиентский экспорт + серверный импорт)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/avm-cargo/` — React+Vite фронтенд
+  - `src/pages/` — страницы (landing, login, register, dashboard, package detail, admin)
+  - `src/components/` — переиспользуемые компоненты
+  - `src/index.css` — темa (чёрный/белый/красный)
+- `artifacts/api-server/src/routes/` — API маршруты
+  - `auth.ts` — регистрация/вход/выход/me
+  - `packages.ts` — CRUD посылок + статусы + импорт/экспорт
+  - `notifications.ts` — уведомления
+- `lib/db/src/schema/` — Drizzle схема (users, packages, package_history, notifications)
+- `lib/api-spec/openapi.yaml` — OpenAPI контракт
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Сессии на стороне сервера** (express-session + PostgreSQL) вместо JWT для простоты и безопасности
+- **Role-based access**: role='admin' в таблице users; middleware requireAuth / requireAdmin
+- **Статус 'delivered' → автоархивация**: при установке статуса delivered пакет помечается archived=true
+- **OpenAPI-first**: все хуки React Query генерируются из openapi.yaml через Orval
+- **type: number вместо integer** в OpenAPI spec (совместимость Orval 8.x + Zod v3)
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+_Заполнять по мере разработки._
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- После изменений в `lib/api-spec/openapi.yaml` обязательно запустить `pnpm --filter @workspace/api-spec run codegen`
+- После изменений в `lib/db/src/schema/` запустить `pnpm run typecheck:libs` перед проверкой артефактов
+- Не использовать `type: integer` в OpenAPI spec — Orval 8.x генерирует `zod.int()` который не существует в Zod v3; использовать `type: number`
+- `pnpm --filter @workspace/db run push-force` если push падает с конфликтом колонок

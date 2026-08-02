@@ -3,13 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AVM CARGO API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: packages
+    description: Package tracking operations
+  - name: notifications
+    description: Notification operations
+  - name: stats
+    description: Admin statistics
 paths:
   /healthz:
     get:
@@ -24,6 +32,335 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /packages:
+    get:
+      operationId: listPackages
+      tags: [packages]
+      summary: List packages
+      parameters:
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+          description: Filter by archived status
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Filter by status
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by tracking number, client name, or phone
+        - name: userId
+          in: query
+          schema:
+            type: ["number", "null"]
+          description: Filter by user ID (admin only)
+      responses:
+        "200":
+          description: List of packages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+
+    post:
+      operationId: createPackage
+      tags: [packages]
+      summary: Create a new package
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /packages/stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /packages/export:
+    get:
+      operationId: exportPackages
+      tags: [packages]
+      summary: Export packages as Excel (returns JSON data for client-side export)
+      responses:
+        "200":
+          description: Export data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportData"
+
+  /packages/{id}:
+    get:
+      operationId: getPackage
+      tags: [packages]
+      summary: Get a single package
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PackageDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updatePackage
+      tags: [packages]
+      summary: Update a package
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageUpdate"
+      responses:
+        "200":
+          description: Updated package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      operationId: deletePackage
+      tags: [packages]
+      summary: Delete a package
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /packages/{id}/status:
+    post:
+      operationId: addPackageStatus
+      tags: [packages]
+      summary: Add a status update to a package
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusInput"
+      responses:
+        "201":
+          description: Status added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /packages/{id}/restore:
+    post:
+      operationId: restorePackage
+      tags: [packages]
+      summary: Restore a package from archive
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Restored package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications for current user
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +371,261 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    # Auth schemas
+    RegisterInput:
+      type: object
+      required: [name, phone, password]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        phone:
+          type: string
+          minLength: 7
+        password:
+          type: string
+          minLength: 6
+
+    LoginInput:
+      type: object
+      required: [phone, password]
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      required: [id, name, phone, role, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [client, admin]
+        createdAt:
+          type: string
+          format: date-time
+
+    AuthResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+
+    # Package schemas
+    PackageStatus:
+      type: string
+      enum:
+        - created
+        - accepted_china
+        - departed_china
+        - arrived_almaty
+        - departed_almaty
+        - arrived_city
+        - ready_pickup
+        - delivered
+
+    PackageInput:
+      type: object
+      required: [trackingNumber]
+      properties:
+        trackingNumber:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        weight:
+          type: ["number", "null"]
+        deliveryCost:
+          type: ["number", "null"]
+        userId:
+          type: ["number", "null"]
+
+    PackageUpdate:
+      type: object
+      properties:
+        trackingNumber:
+          type: string
+        description:
+          type: ["string", "null"]
+        weight:
+          type: ["number", "null"]
+        deliveryCost:
+          type: ["number", "null"]
+        adminComment:
+          type: ["string", "null"]
+        archived:
+          type: boolean
+
+    StatusInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/PackageStatus"
+
+    StatusHistory:
+      type: object
+      required: [id, packageId, status, changedAt]
+      properties:
+        id:
+          type: number
+        packageId:
+          type: number
+        status:
+          $ref: "#/components/schemas/PackageStatus"
+        changedAt:
+          type: string
+          format: date-time
+        changedBy:
+          type: ["number", "null"]
+
+    Package:
+      type: object
+      required: [id, trackingNumber, status, archived, userId, createdAt, updatedAt]
+      properties:
+        id:
+          type: number
+        trackingNumber:
+          type: string
+        description:
+          type: ["string", "null"]
+        weight:
+          type: ["number", "null"]
+        deliveryCost:
+          type: ["number", "null"]
+        status:
+          $ref: "#/components/schemas/PackageStatus"
+        adminComment:
+          type: ["string", "null"]
+        archived:
+          type: boolean
+        userId:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          $ref: "#/components/schemas/User"
+
+    PackageDetail:
+      type: object
+      required: [id, trackingNumber, status, archived, userId, createdAt, updatedAt, history]
+      properties:
+        id:
+          type: number
+        trackingNumber:
+          type: string
+        description:
+          type: ["string", "null"]
+        weight:
+          type: ["number", "null"]
+        deliveryCost:
+          type: ["number", "null"]
+        status:
+          $ref: "#/components/schemas/PackageStatus"
+        adminComment:
+          type: ["string", "null"]
+        archived:
+          type: boolean
+        userId:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        user:
+          $ref: "#/components/schemas/User"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusHistory"
+
+    # Stats
+    Stats:
+      type: object
+      required: [total, active, readyPickup, archived, recentChanges]
+      properties:
+        total:
+          type: number
+        active:
+          type: number
+        readyPickup:
+          type: number
+        archived:
+          type: number
+        recentChanges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Package"
+
+    ImportResult:
+      type: object
+      required: [updated, created, errors]
+      properties:
+        updated:
+          type: number
+        created:
+          type: number
+        errors:
+          type: array
+          items:
+            type: string
+
+    ExportData:
+      type: object
+      required: [packages]
+      properties:
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Package"
+
+    # Notification
+    Notification:
+      type: object
+      required: [id, userId, message, read, createdAt]
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        packageId:
+          type: ["number", "null"]
+        message:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        package:
+          $ref: "#/components/schemas/Package"

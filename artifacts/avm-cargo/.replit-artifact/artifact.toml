@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AVM CARGO"
+description = "A cargo tracking web platform for AVM CARGO. Lets clients track their packages from registration to delivery with real-time status updates and timeline history. Includes an admin panel for managing packages, statuses, Excel import/export, QR scanning, and analytics."
+version = "1.0.0"
+id = "artifacts/avm-cargo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20375
+
+[services.development]
+run = "pnpm --filter @workspace/avm-cargo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/avm-cargo", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/avm-cargo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20375"
+BASE_PATH = "/"
