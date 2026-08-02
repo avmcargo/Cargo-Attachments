@@ -135,6 +135,42 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
   const { trackingNumber, description, weight, deliveryCost, userId } = parsed.data;
   const targetUserId = user.role === "admin" && userId ? userId : user.id;
 
+  // Check if tracking number already exists
+  const [existing] = await db
+    .select()
+    .from(packagesTable)
+    .where(eq(packagesTable.trackingNumber, trackingNumber));
+
+  if (existing) {
+    if (user.role !== "admin") {
+      // Check who owns it
+      const [owner] = await db.select().from(usersTable).where(eq(usersTable.id, existing.userId));
+      if (owner && owner.role === "client") {
+        // Already claimed by another client
+        if (existing.userId !== user.id) {
+          res.status(400).json({ error: "Этот трек-номер уже добавлен другим клиентом" });
+          return;
+        }
+        // Already belongs to this client
+        res.status(400).json({ error: "Этот трек-номер уже добавлен в ваш кабинет" });
+        return;
+      }
+      // Owner is admin — reassign to this client
+      const [updated] = await db
+        .update(packagesTable)
+        .set({ userId: user.id, updatedAt: new Date() })
+        .where(eq(packagesTable.id, existing.id))
+        .returning();
+
+      const result = await getPackageWithUser(updated.id);
+      res.status(200).json(result);
+      return;
+    }
+    // Admin: just return conflict
+    res.status(400).json({ error: "Посылка с таким трек-номером уже существует" });
+    return;
+  }
+
   const [pkg] = await db
     .insert(packagesTable)
     .values({
