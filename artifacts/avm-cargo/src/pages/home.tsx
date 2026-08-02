@@ -53,7 +53,7 @@ export default function Home() {
         <div className="text-center max-w-3xl mx-auto mb-10">
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
             Доставка из Китая<br />
-            <span className="text-primary">с армейской точностью</span>
+            <span className="text-primary">в Казахстан</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
             Отслеживайте каждую деталь вашего груза. Надежная логистика для бизнеса и частных лиц в Казахстане.
