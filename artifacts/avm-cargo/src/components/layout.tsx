@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { LayoutDashboard, LogOut, Bell, Settings } from "lucide-react";
@@ -12,7 +12,7 @@ import { Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
   const logoutMutation = useLogout();
   const markRead = useMarkNotificationRead();
@@ -94,12 +94,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
     </Popover>
   );
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation("/login");
+    }
+  }, [isLoading, user, setLocation]);
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Загрузка...</div>;
   }
 
   if (!user) {
-    setLocation("/login");
     return null;
   }
 
