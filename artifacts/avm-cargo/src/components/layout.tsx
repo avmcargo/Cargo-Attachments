@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Package, LayoutDashboard, LogOut, Bell, Settings, PackageOpen } from "lucide-react";
+import { LayoutDashboard, LogOut, Bell, Settings } from "lucide-react";
+import avmLogo from "@assets/IMG-20260623-WA0021_1785654223496.jpg";
 import { Button } from "./ui/button";
 import { getListNotificationsQueryKey, useLogout, useListNotifications, useMarkNotificationRead } from "@workspace/api-client-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -109,10 +110,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex w-64 bg-sidebar text-sidebar-foreground flex-col border-r border-sidebar-border">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-          <Link href="/" className="flex items-center gap-2 cursor-pointer text-sidebar-primary-foreground font-bold tracking-tight text-xl">
-            <PackageOpen className="text-primary w-6 h-6" />
-            AVM CARGO
+        <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
+          <Link href="/" className="flex items-center gap-2 cursor-pointer">
+            <img src={avmLogo} alt="AVM CARGO" className="h-10 w-10 rounded object-cover" />
+            <span className="text-sidebar-foreground font-extrabold tracking-tight text-lg leading-none">AVM<br/><span className="text-[10px] font-semibold tracking-widest opacity-70">CARGO</span></span>
           </Link>
         </div>
         
@@ -155,9 +156,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between h-14 bg-sidebar text-sidebar-foreground px-4 border-b border-sidebar-border sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 cursor-pointer font-bold tracking-tight">
-          <PackageOpen className="text-primary w-5 h-5" />
-          <span className="text-sidebar-primary-foreground">AVM CARGO</span>
+        <Link href="/" className="flex items-center gap-2 cursor-pointer">
+          <img src={avmLogo} alt="AVM CARGO" className="h-8 w-8 rounded object-cover" />
+          <span className="text-sidebar-foreground font-extrabold tracking-tight text-base">AVM CARGO</span>
         </Link>
         <div className="flex items-center gap-4">
           <NotificationsDropdown />

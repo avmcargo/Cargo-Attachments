@@ -67,7 +67,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* LIGHT MODE — AVM CARGO brand: dark navy + blue + white */
 :root {
   --button-outline: rgba(0, 0, 0, 0.1);
   --badge-outline: rgba(0, 0, 0, 0.05);
@@ -77,45 +77,45 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  /* White background, black foreground */
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
+  /* White background, dark navy foreground */
+  --background: 210 20% 98%;
+  --foreground: 218 48% 15%;
 
-  /* Borders: subtle grays */
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 0% 0%;
+  /* Borders */
+  --border: 214 20% 88%;
+  --input: 214 20% 88%;
+  --ring: 210 63% 47%;
 
-  /* Red as primary accent */
-  --primary: 0 72% 51%;
+  /* Blue as primary accent (logo blue) */
+  --primary: 210 63% 47%;
   --primary-foreground: 0 0% 100%;
 
-  /* Black sidebar */
-  --sidebar: 0 0% 0%;
+  /* Dark navy sidebar (logo background) */
+  --sidebar: 218 48% 16%;
   --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 0 72% 51%;
+  --sidebar-border: 218 40% 24%;
+  --sidebar-primary: 210 63% 47%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent: 218 40% 24%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 0 0% 100%;
+  --sidebar-ring: 210 63% 47%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
-  --card-border: 0 0% 90%;
+  --card-foreground: 218 48% 15%;
+  --card-border: 214 20% 88%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 0%;
-  --popover-border: 0 0% 90%;
+  --popover-foreground: 218 48% 15%;
+  --popover-border: 214 20% 88%;
 
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 0%;
+  --secondary: 210 20% 95%;
+  --secondary-foreground: 218 48% 15%;
 
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
+  --muted: 210 20% 95%;
+  --muted-foreground: 218 25% 45%;
 
-  --accent: 0 0% 96%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 210 30% 92%;
+  --accent-foreground: 218 48% 15%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
@@ -186,42 +186,42 @@
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
 
-  /* Fully black background for dark mode terminal feel */
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
+  /* Dark navy background */
+  --background: 218 48% 10%;
+  --foreground: 210 20% 95%;
 
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 0 0% 100%;
+  --border: 218 35% 22%;
+  --input: 218 35% 22%;
+  --ring: 210 63% 55%;
 
-  --primary: 0 72% 51%;
+  --primary: 210 63% 55%;
   --primary-foreground: 0 0% 100%;
 
-  --sidebar: 0 0% 5%;
+  --sidebar: 218 52% 8%;
   --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 0 72% 51%;
+  --sidebar-border: 218 40% 18%;
+  --sidebar-primary: 210 63% 55%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent: 218 40% 18%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 0 0% 100%;
+  --sidebar-ring: 210 63% 55%;
 
-  --card: 0 0% 5%;
-  --card-foreground: 0 0% 100%;
-  --card-border: 0 0% 15%;
+  --card: 218 48% 13%;
+  --card-foreground: 210 20% 95%;
+  --card-border: 218 35% 22%;
 
-  --popover: 0 0% 5%;
-  --popover-foreground: 0 0% 100%;
-  --popover-border: 0 0% 15%;
+  --popover: 218 48% 13%;
+  --popover-foreground: 210 20% 95%;
+  --popover-border: 218 35% 22%;
 
-  --secondary: 0 0% 15%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 218 35% 20%;
+  --secondary-foreground: 210 20% 95%;
 
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 60%;
+  --muted: 218 35% 20%;
+  --muted-foreground: 210 20% 60%;
 
-  --accent: 0 0% 15%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 218 35% 20%;
+  --accent-foreground: 210 20% 95%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;

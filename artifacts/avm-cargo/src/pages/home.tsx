@@ -4,6 +4,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
+import avmLogo from "@assets/IMG-20260623-WA0021_1785654223496.jpg";
 
 export default function Home() {
   const [trackNumber, setTrackNumber] = useState('');
@@ -23,10 +24,8 @@ export default function Home() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold">
-            A
-          </div>
-          <span className="font-extrabold tracking-tight text-xl">AVM CARGO</span>
+          <img src={avmLogo} alt="AVM CARGO" className="h-10 w-10 rounded object-cover" />
+          <span className="font-extrabold tracking-tight text-xl text-foreground">AVM CARGO</span>
         </div>
         
         <div className="flex items-center gap-4">
