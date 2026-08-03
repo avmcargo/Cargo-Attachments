@@ -194,7 +194,7 @@ export default function Dashboard() {
           ) : filteredActive.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredActive.map(pkg => (
-                <PackageCard key={pkg.id} pkg={pkg} onDelete={handleDelete} />
+                <PackageCard key={pkg.id} pkg={pkg} onDelete={handleDelete} showTimeline />
               ))}
             </div>
           ) : (
@@ -214,7 +214,7 @@ export default function Dashboard() {
           ) : filteredArchived.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredArchived.map(pkg => (
-                <PackageCard key={pkg.id} pkg={pkg} onDelete={handleDelete} />
+                <PackageCard key={pkg.id} pkg={pkg} onDelete={handleDelete} showTimeline />
               ))}
             </div>
           ) : (

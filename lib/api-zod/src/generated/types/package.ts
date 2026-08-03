@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PackageStatus } from './packageStatus';
+import type { StatusHistory } from './statusHistory';
 import type { User } from './user';
 
 export interface Package {
@@ -25,4 +26,5 @@ export interface Package {
   createdAt: Date;
   updatedAt: Date;
   user?: User;
+  history?: StatusHistory[];
 }

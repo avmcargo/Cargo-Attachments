@@ -41,7 +41,14 @@ export const RegisterResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-})
+}),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -60,7 +67,14 @@ export const LoginResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-})
+}),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -112,7 +126,14 @@ export const ListPackagesResponseItem = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 export const ListPackagesResponse = zod.array(ListPackagesResponseItem)
 
@@ -150,7 +171,14 @@ export const CreatePackageResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -180,7 +208,14 @@ export const GetStatsResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 }))
 })
 
@@ -207,7 +242,14 @@ export const ExportPackagesResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 }))
 })
 
@@ -282,7 +324,14 @@ export const UpdatePackageResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -325,7 +374,14 @@ export const AddPackageStatusResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -354,7 +410,14 @@ export const RestorePackageResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 })
 
 
@@ -386,7 +449,14 @@ export const ListNotificationsResponseItem = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 }).optional()
 })
 export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
@@ -424,7 +494,14 @@ export const MarkNotificationReadResponse = zod.object({
   "phone": zod.string(),
   "role": zod.enum(['client', 'admin']),
   "createdAt": zod.coerce.date()
-}).optional()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
 }).optional()
 })
 

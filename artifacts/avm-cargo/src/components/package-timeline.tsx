@@ -1,13 +1,15 @@
 import React from 'react';
-import { PackageDetail, PackageStatus } from '@workspace/api-client-react';
+import { Package, PackageDetail, PackageStatus, StatusHistory } from '@workspace/api-client-react';
 import { STATUS_LABELS, STATUS_ORDER, STATUS_DOT_COLORS } from '@/lib/status';
 import { format } from 'date-fns';
 import { Check, CircleDot, PackageCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export function PackageTimeline({ detail }: { detail: PackageDetail }) {
+type TimelinePackage = Package | PackageDetail;
+
+export function PackageTimeline({ detail }: { detail: TimelinePackage }) {
   const currentStatusIndex = STATUS_ORDER.indexOf(detail.status);
-  const historyByStatus = new Map<PackageStatus, PackageDetail["history"][number]>();
+  const historyByStatus = new Map<PackageStatus, StatusHistory>();
 
   detail.history?.forEach((entry) => {
     const previous = historyByStatus.get(entry.status);

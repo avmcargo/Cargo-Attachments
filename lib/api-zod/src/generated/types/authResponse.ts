@@ -5,8 +5,10 @@
  * AVM CARGO API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { StatusHistory } from './statusHistory';
 import type { User } from './user';
 
 export interface AuthResponse {
   user: User;
+  history?: StatusHistory[];
 }

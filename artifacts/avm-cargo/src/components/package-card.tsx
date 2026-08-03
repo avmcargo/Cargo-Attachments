@@ -1,6 +1,7 @@
 import React from 'react';
 import { Package, useUpdatePackage } from '@workspace/api-client-react';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT_COLORS, getStatusCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '@/lib/status';
+import { PackageTimeline } from '@/components/package-timeline';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -13,9 +14,10 @@ interface PackageCardProps {
   pkg: Package;
   onDelete?: (id: number) => void;
   isAdmin?: boolean;
+  showTimeline?: boolean;
 }
 
-export function PackageCard({ pkg, onDelete, isAdmin }: PackageCardProps) {
+export function PackageCard({ pkg, onDelete, isAdmin, showTimeline = false }: PackageCardProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
@@ -132,6 +134,18 @@ export function PackageCard({ pkg, onDelete, isAdmin }: PackageCardProps) {
           <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
         </div>
       </div>
+
+      {showTimeline && (
+        <div
+          className="mt-5 border-t border-border/60 pt-5"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            История движения
+          </h3>
+          <PackageTimeline detail={pkg} />
+        </div>
+      )}
     </motion.div>
   );
 }

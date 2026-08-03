@@ -434,6 +434,10 @@ components:
       properties:
         user:
           $ref: "#/components/schemas/User"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusHistory"
 
     # Package schemas
     PackageStatus:
@@ -533,6 +537,10 @@ components:
           format: date-time
         user:
           $ref: "#/components/schemas/User"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusHistory"
 
     PackageDetail:
       type: object

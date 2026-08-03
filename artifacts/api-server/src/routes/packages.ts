@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request } from "express";
-import { eq, and, or, ilike, desc } from "drizzle-orm";
+import { eq, and, or, ilike, desc, inArray } from "drizzle-orm";
 import { db, packagesTable, usersTable, packageHistoryTable, notificationsTable } from "@workspace/db";
 import {
   CreatePackageBody,
@@ -107,14 +107,34 @@ router.get("/packages", requireAuth, async (req: Request, res): Promise<void> =>
     userIds.length === 1 ? eq(usersTable.id, userIds[0]) : or(...userIds.map(id => eq(usersTable.id, id)))
   ) : [];
   const userMap = new Map(users.map(u => [u.id, u]));
+  const packageIds = packages.map(p => p.id);
+  const histories = packageIds.length > 0
+    ? await db
+        .select()
+        .from(packageHistoryTable)
+        .where(inArray(packageHistoryTable.packageId, packageIds))
+        .orderBy(packageHistoryTable.changedAt)
+    : [];
+  const historyMap = new Map<number, typeof histories>();
+
+  for (const history of histories) {
+    const entries = historyMap.get(history.packageId) ?? [];
+    entries.push(history);
+    historyMap.set(history.packageId, entries);
+  }
 
   const result = packages.map(p => {
     const u = userMap.get(p.userId);
+    const history = historyMap.get(p.id) ?? [];
     return {
       ...p,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       user: u ? { id: u.id, name: u.name, phone: u.phone, role: u.role, createdAt: u.createdAt.toISOString() } : null,
+      history: history.map(h => ({
+        ...h,
+        changedAt: h.changedAt.toISOString(),
+      })),
     };
   });
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'wouter';
 import { useGetPackage, useUpdatePackage } from '@workspace/api-client-react';
 import { getGetPackageQueryKey } from '@workspace/api-client-react';
-import { PackageTimeline } from '@/components/package-timeline';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { QRCodeSVG } from 'qrcode.react';
@@ -195,11 +194,6 @@ export default function PackageDetail() {
           </div>
         </div>
 
-        {/* Timeline Sidebar */}
-        <div className="bg-card border border-border shadow-sm rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-6 border-b border-border pb-4">История движения</h2>
-          <PackageTimeline detail={pkg} />
-        </div>
       </div>
     </div>
   );

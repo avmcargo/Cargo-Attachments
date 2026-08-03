@@ -47,10 +47,6 @@ export interface User {
   createdAt: string;
 }
 
-export interface AuthResponse {
-  user: User;
-}
-
 export type PackageStatus = typeof PackageStatus[keyof typeof PackageStatus];
 
 
@@ -62,6 +58,20 @@ export const PackageStatus = {
   courier: 'courier',
   delivered: 'delivered',
 } as const;
+
+export interface StatusHistory {
+  id: number;
+  packageId: number;
+  status: PackageStatus;
+  changedAt: string;
+  /** @nullable */
+  changedBy?: number | null;
+}
+
+export interface AuthResponse {
+  user: User;
+  history?: StatusHistory[];
+}
 
 export interface PackageInput {
   /** @minLength 1 */
@@ -94,15 +104,6 @@ export interface StatusInput {
   status: PackageStatus;
 }
 
-export interface StatusHistory {
-  id: number;
-  packageId: number;
-  status: PackageStatus;
-  changedAt: string;
-  /** @nullable */
-  changedBy?: number | null;
-}
-
 export interface Package {
   id: number;
   trackingNumber: string;
@@ -120,6 +121,7 @@ export interface Package {
   createdAt: string;
   updatedAt: string;
   user?: User;
+  history?: StatusHistory[];
 }
 
 export interface PackageDetail {
