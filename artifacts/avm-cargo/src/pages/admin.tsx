@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   useGetStats, 
   useListPackages, 
   useUpdatePackage, 
   useExportPackages,
   useAddPackageStatus,
-  useDeletePackage
+  useDeletePackage,
 } from '@workspace/api-client-react';
 import { getGetStatsQueryKey, getListPackagesQueryKey, getExportPackagesQueryKey } from '@workspace/api-client-react';
 import { PackageCard } from '@/components/package-card';
@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importStatus, setImportStatus] = useState('preparation');
   const [importing, setImporting] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -81,6 +82,15 @@ export default function AdminDashboard() {
   const updatePackage = useUpdatePackage();
   const addStatus = useAddPackageStatus();
   const deletePackage = useDeletePackage();
+
+  const handleScannedNumber = useCallback((trackingNumber: string) => {
+    setSearch(trackingNumber);
+    setScannerOpen(false);
+    toast({
+      title: "Трек-номер распознан",
+      description: `${trackingNumber} подставлен в поиск.`,
+    });
+  }, [toast]);
 
   const handleExport = async () => {
     try {
@@ -175,6 +185,11 @@ export default function AdminDashboard() {
         fileInputRef={fileInputRef}
         importing={importing}
       />
+      <ScannerDialog
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScan={handleScannedNumber}
+      />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-foreground">Панель управления</h1>
@@ -197,7 +212,11 @@ export default function AdminDashboard() {
             accept=".xlsx,.xls,.csv" 
             onChange={handleImportFile}
           />
-          <Button className="gap-2 font-bold" data-testid="btn-scan">
+          <Button
+            className="gap-2 font-bold"
+            onClick={() => setScannerOpen(true)}
+            data-testid="btn-scan"
+          >
             <ScanLine className="w-4 h-4" />
             Сканировать
           </Button>
@@ -385,6 +404,155 @@ export default function AdminDashboard() {
         />
       )}
     </div>
+  );
+}
+
+function ScannerDialog({ open, onClose, onScan }: {
+  open: boolean;
+  onClose: () => void;
+  onScan: (trackingNumber: string) => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const [manualNumber, setManualNumber] = useState('');
+  const [cameraMessage, setCameraMessage] = useState('Запрашиваем доступ к камере…');
+
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    const stopCamera = () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraMessage('Камера недоступна в этом браузере. Используйте ручной ввод.');
+        return;
+      }
+
+      try {
+        const BarcodeDetectorConstructor = (
+          window as Window & {
+            BarcodeDetector?: new (options?: { formats?: string[] }) => {
+              detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>>;
+            };
+          }
+        ).BarcodeDetector;
+
+        if (!BarcodeDetectorConstructor) {
+          setCameraMessage('Автоматическое распознавание не поддерживается. Введите номер вручную.');
+          return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
+        streamRef.current = stream;
+        if (!videoRef.current) return;
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setCameraMessage('Наведите камеру на QR-код или штрихкод');
+
+        const detector = new BarcodeDetectorConstructor({
+          formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'data_matrix', 'pdf417', 'aztec'],
+        });
+
+        const detectFrame = async () => {
+          if (cancelled || !videoRef.current || videoRef.current.readyState < 2) {
+            if (!cancelled) frameRef.current = requestAnimationFrame(() => void detectFrame());
+            return;
+          }
+
+          try {
+            const results = await detector.detect(videoRef.current);
+            const value = results.find(result => result.rawValue?.trim())?.rawValue?.trim();
+            if (value) {
+              onScan(value);
+              return;
+            }
+          } catch {
+            // Keep scanning; a partially visible code can fail detection for a frame.
+          }
+
+          if (!cancelled) frameRef.current = requestAnimationFrame(() => void detectFrame());
+        };
+
+        frameRef.current = requestAnimationFrame(() => void detectFrame());
+      } catch (error) {
+        if (!cancelled) {
+          setCameraMessage(
+            error instanceof DOMException && error.name === 'NotAllowedError'
+              ? 'Доступ к камере запрещён. Разрешите камеру или введите номер вручную.'
+              : 'Не удалось открыть камеру. Введите номер вручную.',
+          );
+        }
+      }
+    };
+
+    void startCamera();
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
+  }, [open, onScan]);
+
+  const handleManualSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const value = manualNumber.trim();
+    if (value) onScan(value);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Сканировать трек-номер</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-xl bg-slate-950 aspect-video">
+            <video
+              ref={videoRef}
+              muted
+              playsInline
+              className="h-full w-full object-cover"
+              aria-label="Изображение с камеры"
+            />
+            <div className="pointer-events-none absolute inset-8 rounded-lg border-2 border-white/70" />
+            <div className="absolute inset-x-3 bottom-3 rounded-md bg-black/60 px-3 py-2 text-center text-xs text-white">
+              {cameraMessage}
+            </div>
+          </div>
+          <div className="text-center text-sm text-muted-foreground">или введите номер вручную</div>
+          <form onSubmit={handleManualSubmit} className="flex gap-2">
+            <Input
+              value={manualNumber}
+              onChange={(event) => setManualNumber(event.target.value)}
+              placeholder="Трек-номер"
+              autoFocus
+              className="font-mono"
+            />
+            <Button type="submit" disabled={!manualNumber.trim()}>
+              Найти
+            </Button>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
