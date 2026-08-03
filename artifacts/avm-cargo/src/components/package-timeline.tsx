@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PackageDetail, PackageStatus } from '@workspace/api-client-react';
 import { STATUS_LABELS, STATUS_ORDER, STATUS_DOT_COLORS } from '@/lib/status';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { Check, CircleDot, PackageCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function PackageTimeline({ detail }: { detail: PackageDetail }) {
@@ -28,50 +27,84 @@ export function PackageTimeline({ detail }: { detail: PackageDetail }) {
     });
   }
 
+  if (!historyByStatus.has(detail.status) && detail.updatedAt) {
+    historyByStatus.set(detail.status, {
+      id: 0,
+      packageId: detail.id,
+      status: detail.status,
+      changedAt: detail.updatedAt,
+    });
+  }
+
   return (
-    <div className="relative py-4 pl-4 pr-2">
-      <div className="absolute left-[27px] top-6 bottom-6 w-0.5 bg-border z-0" />
-      
-      <div className="flex flex-col gap-6 relative z-10">
+    <div className="relative py-1">
+      <div className="flex flex-col">
         {STATUS_ORDER.map((status, index) => {
-          const isCompleted = index <= currentStatusIndex;
+          const isCompleted = index < currentStatusIndex || Boolean(historyByStatus.get(status));
           const isCurrent = index === currentStatusIndex;
           
           const historyEntry = historyByStatus.get(status);
+          const isLast = index === STATUS_ORDER.length - 1;
+          const markerColor = STATUS_DOT_COLORS[status];
           
           return (
             <motion.div 
               key={status}
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`flex gap-4 items-start ${isCompleted ? 'opacity-100' : 'opacity-40'}`}
+              transition={{ delay: index * 0.08 }}
+              className={`relative flex min-h-[76px] gap-4 ${isCompleted || isCurrent ? 'opacity-100' : 'opacity-45'}`}
             >
-              <div className="relative shrink-0 mt-1">
-                {isCompleted ? (
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ${STATUS_DOT_COLORS[status]}`}>
-                    <CheckCircle2 className="w-4 h-4 text-white" />
+              {!isLast && (
+                <div className="absolute left-[15px] top-9 h-[calc(100%-13px)] w-px bg-border">
+                  {index < currentStatusIndex && (
+                    <div className={`h-full w-full ${markerColor}`} />
+                  )}
+                </div>
+              )}
+
+              <div className="relative z-10 shrink-0">
+                {isCurrent ? (
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${markerColor} shadow-md ring-4 ring-background`}>
+                    <CircleDot className="h-4 w-4 text-white" />
+                  </div>
+                ) : isCompleted ? (
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${markerColor} shadow-sm ring-4 ring-background`}>
+                    <Check className="h-4 w-4 text-white" strokeWidth={3} />
                   </div>
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-white dark:bg-card border-2 border-border flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-muted" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-border bg-background ring-4 ring-background">
+                    <div className="h-2 w-2 rounded-full bg-border" />
                   </div>
-                )}
-                
-                {isCurrent && (
-                  <span className={`absolute -inset-1 rounded-full animate-ping opacity-25 ${STATUS_DOT_COLORS[status]}`} />
                 )}
               </div>
               
-              <div className="flex flex-col">
-                <span className={`font-semibold text-sm ${isCurrent ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {STATUS_LABELS[status]}
-                </span>
-                
-                {historyEntry && (
-                  <span className="text-xs font-medium text-muted-foreground mt-0.5">
-                    Дата: {format(new Date(historyEntry.changedAt), 'dd.MM.yyyy', { locale: ru })}
+              <div className={`min-w-0 flex-1 pb-6 ${isCurrent ? 'rounded-lg bg-primary/5 px-3 py-2 -mt-2' : ''}`}>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <span className={`text-sm font-bold leading-5 ${isCurrent ? 'text-foreground' : isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {STATUS_LABELS[status]}
                   </span>
+                  {isCurrent && (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+                      Сейчас
+                    </span>
+                  )}
+                </div>
+                {historyEntry && (
+                  <span className="mt-1 block text-xs font-medium text-muted-foreground">
+                    {format(new Date(historyEntry.changedAt), 'dd.MM.yyyy')}
+                  </span>
+                )}
+                {!historyEntry && !isCurrent && (
+                  <span className="mt-1 block text-xs text-muted-foreground/70">
+                    Ожидается
+                  </span>
+                )}
+                {isCurrent && (
+                  <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-primary">
+                    <PackageCheck className="h-3.5 w-3.5" />
+                    Этап пройден текущим статусом
+                  </div>
                 )}
               </div>
             </motion.div>
