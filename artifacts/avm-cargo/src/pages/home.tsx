@@ -53,6 +53,11 @@ export default function Home() {
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 -mt-10">
         <div className="text-center max-w-3xl mx-auto mb-10">
+          <img
+            src={avmLogo}
+            alt="AVM CARGO"
+            className="md:hidden w-24 h-24 rounded-2xl object-cover mx-auto mb-6 shadow-lg"
+          />
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
             Доставка из Китая<br />
             <span className="text-primary">в Казахстан</span>
