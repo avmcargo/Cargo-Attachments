@@ -113,7 +113,7 @@ export function PackageCard({ pkg, onDelete, isAdmin }: PackageCardProps) {
             </span>
           )}
           
-          {onDelete && pkg.status === 'created' && (
+          {onDelete && pkg.status === 'preparation' && (
             <Button
               variant="ghost"
               size="icon"

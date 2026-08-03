@@ -4,13 +4,11 @@ import { z } from "zod/v4";
 import { usersTable } from "./users";
 
 export const PACKAGE_STATUSES = [
-  "created",
-  "accepted_china",
-  "departed_china",
+  "preparation",
+  "sent_china",
+  "customs",
   "arrived_almaty",
-  "departed_almaty",
-  "arrived_city",
-  "ready_pickup",
+  "courier",
   "delivered",
 ] as const;
 
@@ -22,7 +20,7 @@ export const packagesTable = pgTable("packages", {
   description: text("description"),
   weight: real("weight"),
   deliveryCost: real("delivery_cost"),
-  status: text("status").notNull().default("created"),
+  status: text("status").notNull().default("preparation"),
   adminComment: text("admin_comment"),
   archived: boolean("archived").notNull().default(false),
   userId: integer("user_id")

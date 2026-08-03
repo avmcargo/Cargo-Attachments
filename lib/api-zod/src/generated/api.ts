@@ -100,7 +100,7 @@ export const ListPackagesResponseItem = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -137,7 +137,7 @@ export const CreatePackageResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -167,7 +167,7 @@ export const GetStatsResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -194,7 +194,7 @@ export const ExportPackagesResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -224,7 +224,7 @@ export const GetPackageResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -240,7 +240,7 @@ export const GetPackageResponse = zod.object({
   "history": zod.array(zod.object({
   "id": zod.number(),
   "packageId": zod.number(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "changedAt": zod.coerce.date(),
   "changedBy": zod.number().nullish()
 }))
@@ -269,7 +269,7 @@ export const UpdatePackageResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -303,7 +303,7 @@ export const AddPackageStatusParams = zod.object({
 })
 
 export const AddPackageStatusBody = zod.object({
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered'])
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered'])
 })
 
 export const AddPackageStatusResponse = zod.object({
@@ -312,7 +312,7 @@ export const AddPackageStatusResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -341,7 +341,7 @@ export const RestorePackageResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -373,7 +373,7 @@ export const ListNotificationsResponseItem = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),
@@ -411,7 +411,7 @@ export const MarkNotificationReadResponse = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "status": zod.enum(['created', 'accepted_china', 'departed_china', 'arrived_almaty', 'departed_almaty', 'arrived_city', 'ready_pickup', 'delivered']),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
   "adminComment": zod.string().nullish(),
   "archived": zod.boolean(),
   "userId": zod.number(),

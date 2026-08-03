@@ -439,13 +439,11 @@ components:
     PackageStatus:
       type: string
       enum:
-        - created
-        - accepted_china
-        - departed_china
+        - preparation
+        - sent_china
+        - customs
         - arrived_almaty
-        - departed_almaty
-        - arrived_city
-        - ready_pickup
+        - courier
         - delivered
 
     PackageInput:

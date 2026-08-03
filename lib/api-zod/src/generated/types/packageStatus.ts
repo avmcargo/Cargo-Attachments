@@ -10,12 +10,10 @@ export type PackageStatus = typeof PackageStatus[keyof typeof PackageStatus];
 
 
 export const PackageStatus = {
-  created: 'created',
-  accepted_china: 'accepted_china',
-  departed_china: 'departed_china',
+  preparation: 'preparation',
+  sent_china: 'sent_china',
+  customs: 'customs',
   arrived_almaty: 'arrived_almaty',
-  departed_almaty: 'departed_almaty',
-  arrived_city: 'arrived_city',
-  ready_pickup: 'ready_pickup',
+  courier: 'courier',
   delivered: 'delivered',
 } as const;

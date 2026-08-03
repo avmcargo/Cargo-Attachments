@@ -23,14 +23,12 @@ const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 const STATUS_LABELS: Record<string, string> = {
-  created: "Создана",
-  accepted_china: "Принята на китайском складе",
-  departed_china: "Выехала с китайского склада",
-  arrived_almaty: "Прибыла в Алматы",
-  departed_almaty: "Выехала из Алматы",
-  arrived_city: "Поступила в город получателя",
-  ready_pickup: "Готова к выдаче",
-  delivered: "Выдана",
+  preparation: "Подготовка к отправке",
+  sent_china: "Отправлен с Китайского склада",
+  customs: "Проходит таможенное оформление",
+  arrived_almaty: "Прибыл в Алматы",
+  courier: "Передан курьеру",
+  delivered: "Доставлен",
 };
 
 async function getPackageWithUser(packageId: number) {
@@ -178,7 +176,7 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
       description: description ?? null,
       weight: weight ?? null,
       deliveryCost: deliveryCost ?? null,
-      status: "created",
+      status: "preparation",
       userId: targetUserId,
     })
     .returning();
@@ -186,7 +184,7 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
   // Add initial history entry
   await db.insert(packageHistoryTable).values({
     packageId: pkg.id,
-    status: "created",
+    status: "preparation",
     changedBy: user.id,
   });
 
@@ -205,7 +203,7 @@ router.get("/packages/stats", requireAuth, async (req: Request, res): Promise<vo
   const all = await db.select().from(packagesTable);
   const total = all.length;
   const active = all.filter(p => !p.archived && p.status !== "delivered").length;
-  const readyPickup = all.filter(p => p.status === "ready_pickup" && !p.archived).length;
+  const readyPickup = all.filter(p => p.status === "courier" && !p.archived).length;
   const archived = all.filter(p => p.archived).length;
 
   const recentPkgs = await db
@@ -274,7 +272,7 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
     return;
   }
 
-  const importStatus = String(req.body.status || "accepted_china").trim();
+  const importStatus = String(req.body.status || "preparation").trim();
   const validStatuses = Object.keys(STATUS_LABELS);
   if (!validStatuses.includes(importStatus)) {
     res.status(400).json({ error: `Недопустимый статус: ${importStatus}` });
@@ -463,13 +461,13 @@ router.delete("/packages/:id", requireAuth, async (req: Request, res): Promise<v
     return;
   }
 
-  // Clients can only delete if status is 'created'
+  // Clients can only delete packages still being prepared
   if (user.role !== "admin") {
     if (pkg.userId !== user.id) {
       res.status(403).json({ error: "Доступ запрещён" });
       return;
     }
-    if (pkg.status !== "created") {
+    if (pkg.status !== "preparation") {
       res.status(400).json({ error: "Нельзя удалить посылку после принятия на складе" });
       return;
     }
@@ -557,7 +555,7 @@ router.post("/packages/:id/restore", requireAuth, async (req: Request, res): Pro
 
   const [updated] = await db
     .update(packagesTable)
-    .set({ archived: false, status: "ready_pickup", updatedAt: new Date() })
+    .set({ archived: false, status: "courier", updatedAt: new Date() })
     .where(eq(packagesTable.id, params.data.id))
     .returning();
 

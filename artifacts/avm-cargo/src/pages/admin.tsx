@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importStatus, setImportStatus] = useState('accepted_china');
+  const [importStatus, setImportStatus] = useState('preparation');
   const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
 
         <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-sm font-semibold text-muted-foreground">Готовы к выдаче</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground">Переданы курьеру</h3>
             <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -390,14 +390,12 @@ export default function AdminDashboard() {
 
 function ImportDialog({ open, onClose, importStatus, setImportStatus, fileInputRef, importing }: any) {
   const statuses = [
-    { value: 'created', label: 'Создана' },
-    { value: 'accepted_china', label: 'Принята на китайском складе' },
-    { value: 'departed_china', label: 'Выехала с китайского склада' },
-    { value: 'arrived_almaty', label: 'Прибыла в Алматы' },
-    { value: 'departed_almaty', label: 'Выехала из Алматы' },
-    { value: 'arrived_city', label: 'Поступила в город получателя' },
-    { value: 'ready_pickup', label: 'Готова к выдаче' },
-    { value: 'delivered', label: 'Выдана' },
+    { value: 'preparation', label: 'Подготовка к отправке' },
+    { value: 'sent_china', label: 'Отправлен с Китайского склада' },
+    { value: 'customs', label: 'Проходит таможенное оформление' },
+    { value: 'arrived_almaty', label: 'Прибыл в Алматы' },
+    { value: 'courier', label: 'Передан курьеру' },
+    { value: 'delivered', label: 'Доставлен' },
   ];
 
   return (
