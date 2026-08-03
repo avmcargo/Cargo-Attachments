@@ -20,7 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminClient,
   AuthResponse,
+  ClientPasswordResetResponse,
   ErrorResponse,
   ExportData,
   HealthStatus,
@@ -33,6 +35,7 @@ import type {
   PackageInput,
   PackageUpdate,
   RegisterInput,
+  ResetClientPasswordInput,
   Stats,
   StatusInput,
   User
@@ -432,6 +435,155 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
 
 
 
+
+export const getListAdminClientsUrl = () => {
+
+
+
+
+  return `/api/admin/clients`
+}
+
+/**
+ * @summary List all clients for administrators
+ */
+export const listAdminClients = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminClient[]> => {
+
+  return customFetch<AdminClient[]>(getListAdminClientsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminClientsQueryKey = () => {
+    return [
+    `/api/admin/clients`
+    ] as const;
+    }
+
+
+export const getListAdminClientsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminClients>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminClients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminClientsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminClients>>> = ({ signal }) => listAdminClients({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminClients>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminClientsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminClients>>>
+export type ListAdminClientsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List all clients for administrators
+ */
+
+export function useListAdminClients<TData = Awaited<ReturnType<typeof listAdminClients>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminClients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminClientsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getResetClientPasswordUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/clients/${id}/password`
+}
+
+/**
+ * @summary Set a new password for a client
+ */
+export const resetClientPassword = async (id: number,
+    resetClientPasswordInput: ResetClientPasswordInput, options?: Parameters<typeof customFetch>[1]): Promise<ClientPasswordResetResponse> => {
+
+  return customFetch<ClientPasswordResetResponse>(getResetClientPasswordUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(resetClientPasswordInput)
+  }
+);}
+
+
+
+
+
+export const getResetClientPasswordMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetClientPassword>>, TError,{id: number;data: BodyType<ResetClientPasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetClientPassword>>, TError,{id: number;data: BodyType<ResetClientPasswordInput>}, TContext> => {
+
+const mutationKey = ['resetClientPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetClientPassword>>, {id: number;data: BodyType<ResetClientPasswordInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  resetClientPassword(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetClientPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof resetClientPassword>>>
+    export type ResetClientPasswordMutationBody = BodyType<ResetClientPasswordInput>
+    export type ResetClientPasswordMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Set a new password for a client
+ */
+export const useResetClientPassword = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetClientPassword>>, TError,{id: number;data: BodyType<ResetClientPasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resetClientPassword>>,
+        TError,
+        {id: number;data: BodyType<ResetClientPasswordInput>},
+        TContext
+      > => {
+      return useMutation(getResetClientPasswordMutationOptions(options));
+    }
 
 export const getListPackagesUrl = (params?: ListPackagesParams,) => {
   const normalizedParams = new URLSearchParams();

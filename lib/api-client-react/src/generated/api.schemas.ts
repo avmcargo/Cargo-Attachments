@@ -47,6 +47,31 @@ export interface User {
   createdAt: string;
 }
 
+export type AdminClientRole = typeof AdminClientRole[keyof typeof AdminClientRole];
+
+
+export const AdminClientRole = {
+  client: 'client',
+} as const;
+
+export interface AdminClient {
+  id: number;
+  name: string;
+  phone: string;
+  role: AdminClientRole;
+  createdAt: string;
+}
+
+export interface ResetClientPasswordInput {
+  /** @minLength 6 */
+  password: string;
+}
+
+export interface ClientPasswordResetResponse {
+  message: string;
+  password: string;
+}
+
 export type PackageStatus = typeof PackageStatus[keyof typeof PackageStatus];
 
 

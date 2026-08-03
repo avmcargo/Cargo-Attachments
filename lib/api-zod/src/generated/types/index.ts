@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminClient';
+export * from './adminClientRole';
 export * from './authResponse';
+export * from './clientPasswordResetResponse';
 export * from './errorResponse';
 export * from './exportData';
 export * from './healthStatus';
@@ -21,6 +24,7 @@ export * from './packageInput';
 export * from './packageStatus';
 export * from './packageUpdate';
 export * from './registerInput';
+export * from './resetClientPasswordInput';
 export * from './stats';
 export * from './statusHistory';
 export * from './statusInput';

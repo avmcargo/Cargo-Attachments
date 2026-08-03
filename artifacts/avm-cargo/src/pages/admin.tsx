@@ -7,8 +7,10 @@ import {
   useAddPackageStatus,
   useDeletePackage,
   useCreatePackage,
+  useListAdminClients,
+  useResetClientPassword,
 } from '@workspace/api-client-react';
-import { getGetStatsQueryKey, getListPackagesQueryKey, getExportPackagesQueryKey } from '@workspace/api-client-react';
+import { getGetStatsQueryKey, getListPackagesQueryKey, getExportPackagesQueryKey, getListAdminClientsQueryKey } from '@workspace/api-client-react';
 import { PackageCard } from '@/components/package-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,7 @@ import {
   MoreVertical,
   Edit,
   Trash
+  , Users, KeyRound, Copy
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -50,6 +53,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
   const [search, setSearch] = useState('');
@@ -65,6 +69,9 @@ export default function AdminDashboard() {
   const [manualTracking, setManualTracking] = useState('');
   const [manualStatus, setManualStatus] = useState('preparation');
   const [manualUpdating, setManualUpdating] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [passwordDialogClient, setPasswordDialogClient] = useState<any>(null);
+  const [issuedPassword, setIssuedPassword] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -88,6 +95,39 @@ export default function AdminDashboard() {
   const addStatus = useAddPackageStatus();
   const deletePackage = useDeletePackage();
   const createPackage = useCreatePackage();
+  const { data: clients = [], isLoading: clientsLoading } = useListAdminClients({
+    query: { queryKey: getListAdminClientsQueryKey() },
+  });
+  const resetClientPassword = useResetClientPassword();
+
+  const filteredClients = clients.filter((client) => {
+    const query = clientSearch.trim().toLowerCase();
+    return !query
+      || client.name.toLowerCase().includes(query)
+      || client.phone.toLowerCase().includes(query);
+  });
+
+  const handleResetClientPassword = async (password: string) => {
+    if (!passwordDialogClient) return;
+
+    try {
+      const result = await resetClientPassword.mutateAsync({
+        id: passwordDialogClient.id,
+        data: { password },
+      });
+      setIssuedPassword(result.password);
+      toast({
+        title: "Пароль обновлён",
+        description: `Новый пароль для клиента ${passwordDialogClient.name} создан.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Не удалось обновить пароль",
+        description: error?.message || "Проверьте введённые данные.",
+      });
+    }
+  };
 
   const updateByTrackingNumber = useCallback(async (trackingNumber: string, status: string) => {
     const normalizedTracking = trackingNumber.trim();
@@ -305,8 +345,21 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <Tabs defaultValue="packages" className="w-full">
+        <TabsList className="mb-6 h-12 w-full justify-start gap-1 overflow-x-auto bg-muted p-1 md:w-auto">
+          <TabsTrigger value="packages" className="h-10 gap-2 px-5 font-semibold">
+            <Package className="w-4 h-4" />
+            Посылки
+          </TabsTrigger>
+          <TabsTrigger value="clients" className="h-10 gap-2 px-5 font-semibold">
+            <Users className="w-4 h-4" />
+            Клиенты
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="packages" className="mt-0 outline-none">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-sm font-semibold text-muted-foreground">Всего посылок</h3>
@@ -346,10 +399,10 @@ export default function AdminDashboard() {
           </div>
           <p className="text-3xl font-black">{stats?.archived || 0}</p>
         </div>
-      </div>
+          </div>
 
-      {/* Filters and List */}
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          {/* Filters and List */}
+          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         <form
           onSubmit={handleManualStatusUpdate}
           className="p-4 border-b border-border bg-muted/20"
@@ -503,7 +556,91 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="clients" className="mt-0 outline-none">
+          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-border">
+              <div className="flex flex-col gap-1 mb-4">
+                <h2 className="text-lg font-bold">Клиенты</h2>
+                <p className="text-sm text-muted-foreground">
+                  Здесь можно найти клиента и задать ему новый пароль, если он забыл старый.
+                </p>
+              </div>
+              <div className="relative max-w-xl">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={clientSearch}
+                  onChange={(event) => setClientSearch(event.target.value)}
+                  placeholder="Поиск по имени или телефону..."
+                  className="pl-9 bg-muted/50"
+                  data-testid="input-admin-client-search"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted text-muted-foreground text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-6 py-4">Клиент</th>
+                    <th className="px-6 py-4">Телефон</th>
+                    <th className="px-6 py-4">Дата регистрации</th>
+                    <th className="px-6 py-4">Пароль</th>
+                    <th className="px-6 py-4 text-right">Действия</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {clientsLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                        Загрузка клиентов...
+                      </td>
+                    </tr>
+                  ) : filteredClients.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                        Клиенты не найдены
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredClients.map((client) => (
+                      <tr key={client.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold">{client.name}</div>
+                          <div className="text-xs text-muted-foreground">ID: {client.id}</div>
+                        </td>
+                        <td className="px-6 py-4 font-mono">{client.phone}</td>
+                        <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                          {format(new Date(client.createdAt), 'dd.MM.yyyy', { locale: ru })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-muted-foreground">Не хранится</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => {
+                              setIssuedPassword(null);
+                              setPasswordDialogClient(client);
+                            }}
+                            data-testid={`btn-reset-client-password-${client.id}`}
+                          >
+                            <KeyRound className="w-4 h-4" />
+                            Новый пароль
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
       
       {/* Edit Dialog */}
       {editingPackage && (
@@ -525,6 +662,16 @@ export default function AdminDashboard() {
           isPending={updatePackage.isPending}
         />
       )}
+      <ClientPasswordDialog
+        client={passwordDialogClient}
+        issuedPassword={issuedPassword}
+        isPending={resetClientPassword.isPending}
+        onClose={() => {
+          setPasswordDialogClient(null);
+          setIssuedPassword(null);
+        }}
+        onSubmit={handleResetClientPassword}
+      />
     </div>
   );
 }
@@ -783,6 +930,91 @@ function EditPackageDialog({ pkg, onClose, onSave, isPending }: any) {
             Сохранить изменения
           </Button>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ClientPasswordDialog({
+  client,
+  issuedPassword,
+  isPending,
+  onClose,
+  onSubmit,
+}: {
+  client: { name: string; phone: string } | null;
+  issuedPassword: string | null;
+  isPending: boolean;
+  onClose: () => void;
+  onSubmit: (password: string) => void;
+}) {
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (client) setPassword('');
+  }, [client]);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (password.trim().length >= 6) onSubmit(password.trim());
+  };
+
+  const copyPassword = async () => {
+    if (!issuedPassword) return;
+    await navigator.clipboard.writeText(issuedPassword);
+  };
+
+  return (
+    <Dialog open={!!client} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Новый пароль клиента</DialogTitle>
+        </DialogHeader>
+        {client && (
+          <div className="space-y-4">
+            <div className="rounded-lg bg-muted/50 p-3 text-sm">
+              <div className="font-semibold">{client.name}</div>
+              <div className="text-muted-foreground">{client.phone}</div>
+            </div>
+            {issuedPassword ? (
+              <div className="space-y-3">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+                  <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                    Передайте этот пароль клиенту
+                  </p>
+                  <p className="mt-2 break-all font-mono text-lg font-bold text-emerald-950 dark:text-emerald-100">
+                    {issuedPassword}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1 gap-2" onClick={copyPassword}>
+                    <Copy className="w-4 h-4" />
+                    Копировать
+                  </Button>
+                  <Button className="flex-1" onClick={onClose}>Готово</Button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Старый пароль недоступен. Укажите новый пароль минимум из 6 символов.
+                </p>
+                <Input
+                  type="text"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Введите временный пароль"
+                  minLength={6}
+                  autoFocus
+                  data-testid="input-new-client-password"
+                />
+                <Button type="submit" className="w-full" disabled={isPending || password.trim().length < 6}>
+                  {isPending ? "Сохраняем..." : "Задать новый пароль"}
+                </Button>
+              </form>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

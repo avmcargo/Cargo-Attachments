@@ -99,6 +99,40 @@ export const GetMeResponse = zod.object({
 
 
 /**
+ * @summary List all clients for administrators
+ */
+export const ListAdminClientsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "role": zod.enum(['client']),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminClientsResponse = zod.array(ListAdminClientsResponseItem)
+
+
+/**
+ * @summary Set a new password for a client
+ */
+export const ResetClientPasswordParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const resetClientPasswordBodyPasswordMin = 6;
+
+
+
+export const ResetClientPasswordBody = zod.object({
+  "password": zod.string().min(resetClientPasswordBodyPasswordMin)
+})
+
+export const ResetClientPasswordResponse = zod.object({
+  "message": zod.string(),
+  "password": zod.string()
+})
+
+
+/**
  * @summary List packages
  */
 export const ListPackagesQueryParams = zod.object({

@@ -18,6 +18,8 @@ tags:
     description: Notification operations
   - name: stats
     description: Admin statistics
+  - name: admin
+    description: Admin client management
 paths:
   /healthz:
     get:
@@ -110,6 +112,64 @@ paths:
                 $ref: "#/components/schemas/User"
         "401":
           description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/clients:
+    get:
+      operationId: listAdminClients
+      tags: [admin]
+      summary: List all clients for administrators
+      responses:
+        "200":
+          description: Client list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminClient"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/clients/{id}/password:
+    post:
+      operationId: resetClientPassword
+      tags: [admin]
+      summary: Set a new password for a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetClientPasswordInput"
+      responses:
+        "200":
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientPasswordResetResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Client not found
           content:
             application/json:
               schema:
@@ -431,6 +491,40 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    AdminClient:
+      type: object
+      required: [id, name, phone, role, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [client]
+        createdAt:
+          type: string
+          format: date-time
+
+    ResetClientPasswordInput:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          minLength: 6
+
+    ClientPasswordResetResponse:
+      type: object
+      required: [message, password]
+      properties:
+        message:
+          type: string
+        password:
+          type: string
 
     AuthResponse:
       type: object
