@@ -157,7 +157,11 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
       // Owner is admin — reassign to this client
       const [updated] = await db
         .update(packagesTable)
-        .set({ userId: user.id, updatedAt: new Date() })
+        .set({
+          userId: user.id,
+          ...(description !== undefined ? { description: description ?? null } : {}),
+          updatedAt: new Date(),
+        })
         .where(eq(packagesTable.id, existing.id))
         .returning();
 

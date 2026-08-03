@@ -21,6 +21,7 @@ import { getListPackagesQueryKey } from '@workspace/api-client-react';
 export default function Dashboard() {
   const { user } = useAuth();
   const [newTrack, setNewTrack] = useState('');
+  const [newDescription, setNewDescription] = useState('');
   const [search, setSearch] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,10 +46,16 @@ export default function Dashboard() {
     if (!newTrack.trim()) return;
     
     createPackage.mutate(
-      { data: { trackingNumber: newTrack.trim() } },
+      {
+        data: {
+          trackingNumber: newTrack.trim(),
+          description: newDescription.trim() || null,
+        },
+      },
       {
         onSuccess: () => {
           setNewTrack('');
+          setNewDescription('');
           toast({ title: "Трек добавлен", description: "Посылка успешно добавлена в список." });
           queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey({ archived: false }) });
         },
@@ -125,17 +132,24 @@ export default function Dashboard() {
 
       {/* Add new track bar */}
       <div className="bg-card border border-border rounded-xl p-4 shadow-sm mb-8">
-        <form onSubmit={handleCreate} className="flex gap-3">
-          <Input 
-            placeholder="Введите трек-номер для добавления..." 
+        <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-3">
+          <Input
+            placeholder="Введите трек-номер для добавления..."
             value={newTrack}
             onChange={e => setNewTrack(e.target.value)}
-            className="h-12 text-base bg-muted/50 font-mono"
+            className="h-12 text-base bg-muted/50 font-mono flex-1"
             data-testid="input-new-track"
+          />
+          <Input
+            placeholder="Описание посылки (необязательно)"
+            value={newDescription}
+            onChange={e => setNewDescription(e.target.value)}
+            className="h-12 text-base bg-muted/50 flex-1"
+            data-testid="input-new-description"
           />
           <Button 
             type="submit" 
-            className="h-12 px-6" 
+            className="h-12 px-6 sm:shrink-0"
             disabled={!newTrack.trim() || createPackage.isPending}
             data-testid="btn-add-track"
           >
