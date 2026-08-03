@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importStatus, setImportStatus] = useState('preparation');
+  const [importDate, setImportDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [importing, setImporting] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [manualTracking, setManualTracking] = useState('');
@@ -199,6 +200,7 @@ export default function AdminDashboard() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('status', importStatus);
+    formData.append('date', importDate);
 
     try {
       const res = await fetch(`${import.meta.env.BASE_URL}api/packages/import`.replace('//', '/'), {
@@ -260,6 +262,8 @@ export default function AdminDashboard() {
         onClose={() => setImportDialogOpen(false)}
         importStatus={importStatus}
         setImportStatus={setImportStatus}
+        importDate={importDate}
+        setImportDate={setImportDate}
         fileInputRef={fileInputRef}
         importing={importing}
       />
@@ -674,7 +678,16 @@ function ScannerDialog({ open, onClose, onScan }: {
   );
 }
 
-function ImportDialog({ open, onClose, importStatus, setImportStatus, fileInputRef, importing }: any) {
+function ImportDialog({
+  open,
+  onClose,
+  importStatus,
+  setImportStatus,
+  importDate,
+  setImportDate,
+  fileInputRef,
+  importing,
+}: any) {
   const statuses = [
     { value: 'preparation', label: 'Подготовка к отправке' },
     { value: 'sent_china', label: 'Отправлен с Китайского склада' },
@@ -695,18 +708,30 @@ function ImportDialog({ open, onClose, importStatus, setImportStatus, fileInputR
             Загрузите файл .xlsx с одной колонкой «Трек Номера». Все посылки получат выбранный статус.
             Если посылка уже есть в базе — статус обновится. Если нет — будет создана.
           </p>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Статус для применения</label>
-            <Select value={importStatus} onValueChange={setImportStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {statuses.map(s => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Статус для применения</label>
+              <Select value={importStatus} onValueChange={setImportStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map(s => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="import-date" className="text-sm font-semibold">Дата статуса</label>
+              <Input
+                id="import-date"
+                type="date"
+                value={importDate}
+                onChange={(event) => setImportDate(event.target.value)}
+                disabled={importing}
+              />
+            </div>
           </div>
           <Button
             className="w-full gap-2"

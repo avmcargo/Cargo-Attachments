@@ -280,6 +280,12 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
     res.status(400).json({ error: `Недопустимый статус: ${importStatus}` });
     return;
   }
+  const importDateValue = String(req.body.date || "").trim();
+  const importDate = importDateValue ? new Date(`${importDateValue}T12:00:00.000Z`) : new Date();
+  if (Number.isNaN(importDate.getTime())) {
+    res.status(400).json({ error: "Недопустимая дата импорта" });
+    return;
+  }
 
   try {
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
@@ -310,13 +316,14 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
           // Update status
           await db
             .update(packagesTable)
-            .set({ status: importStatus, archived: shouldArchive, updatedAt: new Date() })
+            .set({ status: importStatus, archived: shouldArchive, updatedAt: importDate })
             .where(eq(packagesTable.id, existing.id));
 
           // Add history entry
           await db.insert(packageHistoryTable).values({
             packageId: existing.id,
             status: importStatus,
+            changedAt: importDate,
             changedBy: user.id,
           });
 
@@ -338,12 +345,15 @@ router.post("/packages/import", requireAuth, upload.single("file"), async (req: 
               status: importStatus,
               archived: shouldArchive,
               userId: user.id,
+              createdAt: importDate,
+              updatedAt: importDate,
             })
             .returning();
 
           await db.insert(packageHistoryTable).values({
             packageId: newPkg.id,
             status: importStatus,
+            changedAt: importDate,
             changedBy: user.id,
           });
 
