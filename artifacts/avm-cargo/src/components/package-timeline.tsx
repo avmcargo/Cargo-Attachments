@@ -8,6 +8,25 @@ import { motion } from 'framer-motion';
 
 export function PackageTimeline({ detail }: { detail: PackageDetail }) {
   const currentStatusIndex = STATUS_ORDER.indexOf(detail.status);
+  const historyByStatus = new Map<PackageStatus, PackageDetail["history"][number]>();
+
+  detail.history?.forEach((entry) => {
+    const previous = historyByStatus.get(entry.status);
+    if (!previous || new Date(entry.changedAt).getTime() > new Date(previous.changedAt).getTime()) {
+      historyByStatus.set(entry.status, entry);
+    }
+  });
+
+  // Old records may not have an initial history entry. The package creation
+  // date is the correct fallback for the first stage in that case.
+  if (!historyByStatus.has("preparation") && detail.createdAt) {
+    historyByStatus.set("preparation", {
+      id: 0,
+      packageId: detail.id,
+      status: "preparation",
+      changedAt: detail.createdAt,
+    });
+  }
 
   return (
     <div className="relative py-4 pl-4 pr-2">
@@ -18,8 +37,7 @@ export function PackageTimeline({ detail }: { detail: PackageDetail }) {
           const isCompleted = index <= currentStatusIndex;
           const isCurrent = index === currentStatusIndex;
           
-          // Find history entry for this status
-          const historyEntry = detail.history?.find(h => h.status === status);
+          const historyEntry = historyByStatus.get(status);
           
           return (
             <motion.div 
@@ -52,7 +70,7 @@ export function PackageTimeline({ detail }: { detail: PackageDetail }) {
                 
                 {historyEntry && (
                   <span className="text-xs font-medium text-muted-foreground mt-0.5">
-                    {format(new Date(historyEntry.changedAt), 'd MMM yyyy, HH:mm', { locale: ru })}
+                    Дата: {format(new Date(historyEntry.changedAt), 'dd.MM.yyyy', { locale: ru })}
                   </span>
                 )}
               </div>
