@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useLogin } from '@workspace/api-client-react';
 import { Link, useLocation } from 'wouter';
-import { PackageOpen, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect } from 'react';
+import avmLogo from "@assets/IMG-20260623-WA0021_1785654223496.jpg";
 
 const loginSchema = z.object({
   phone: z.string().min(7, 'Введите корректный номер телефона'),
@@ -73,9 +74,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-card border border-border shadow-xl rounded-2xl overflow-hidden">
         <div className="bg-sidebar p-8 text-center text-sidebar-foreground">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <PackageOpen className="w-6 h-6 text-white" />
-            </div>
+            <img src={avmLogo} alt="AVM CARGO" className="w-16 h-16 rounded-xl object-cover shadow-lg" />
           </div>
           <h1 className="text-2xl font-black tracking-tight mb-1">AVM CARGO</h1>
           <p className="text-sidebar-foreground/70 text-sm font-medium">Панель управления логистикой</p>

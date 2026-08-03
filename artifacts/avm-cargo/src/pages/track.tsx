@@ -4,6 +4,7 @@ import { useParams, Link } from 'wouter';
 import { PackageSearch, ArrowLeft } from 'lucide-react';
 import { PackageCard } from '@/components/package-card';
 import { Button } from '@/components/ui/button';
+import avmLogo from "@assets/IMG-20260623-WA0021_1785654223496.jpg";
 
 export default function TrackPage() {
   const { number } = useParams<{ number: string }>();
@@ -18,9 +19,7 @@ export default function TrackPage() {
       <header className="flex items-center justify-between px-6 py-6 max-w-7xl mx-auto w-full">
         <Link href="/">
           <div className="flex items-center gap-2 cursor-pointer">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold">
-              A
-            </div>
+            <img src={avmLogo} alt="AVM CARGO" className="w-8 h-8 rounded object-cover" />
             <span className="font-extrabold tracking-tight text-xl">AVM CARGO</span>
           </div>
         </Link>
