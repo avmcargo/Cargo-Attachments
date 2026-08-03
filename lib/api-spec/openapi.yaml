@@ -253,7 +253,7 @@ paths:
     delete:
       operationId: deletePackage
       tags: [packages]
-      summary: Delete a package
+      summary: Archive a package
       parameters:
         - name: id
           in: path
@@ -261,8 +261,12 @@ paths:
           schema:
             type: number
       responses:
-        "204":
-          description: Deleted
+        "200":
+          description: Archived package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
         "404":
           description: Not found
           content:

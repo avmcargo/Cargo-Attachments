@@ -900,11 +900,11 @@ export const getDeletePackageUrl = (id: number,) => {
 }
 
 /**
- * @summary Delete a package
+ * @summary Archive a package
  */
-export const deletePackage = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+export const deletePackage = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<Package> => {
 
-  return customFetch<void>(getDeletePackageUrl(id),
+  return customFetch<Package>(getDeletePackageUrl(id),
   {
     ...options,
     method: 'DELETE'
@@ -949,7 +949,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeletePackageMutationError = ErrorType<ErrorResponse>
 
     /**
- * @summary Delete a package
+ * @summary Archive a package
  */
 export const useDeletePackage = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePackage>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}

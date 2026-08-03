@@ -497,20 +497,22 @@ router.delete("/packages/:id", requireAuth, async (req: Request, res): Promise<v
     return;
   }
 
-  // Clients can only delete packages still being prepared
+  // Deletion is a soft delete: preserve the package and its history in archive.
   if (user.role !== "admin") {
     if (pkg.userId !== user.id) {
       res.status(403).json({ error: "Доступ запрещён" });
       return;
     }
-    if (pkg.status !== "preparation") {
-      res.status(400).json({ error: "Нельзя удалить посылку после принятия на складе" });
-      return;
-    }
   }
 
-  await db.delete(packagesTable).where(eq(packagesTable.id, params.data.id));
-  res.sendStatus(204);
+  const [archivedPackage] = await db
+    .update(packagesTable)
+    .set({ archived: true, updatedAt: new Date() })
+    .where(eq(packagesTable.id, params.data.id))
+    .returning();
+
+  const result = await getPackageWithUser(archivedPackage.id);
+  res.json(result);
 });
 
 // POST /packages/:id/status

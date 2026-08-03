@@ -245,10 +245,10 @@ export default function AdminDashboard() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Удалить посылку безвозвратно?")) return;
+    if (!confirm("Переместить посылку в архив? История и данные сохранятся.")) return;
     deletePackage.mutate({ id }, {
       onSuccess: () => {
-        toast({ title: "Удалено" });
+        toast({ title: "Посылка перемещена в архив" });
         queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
       }

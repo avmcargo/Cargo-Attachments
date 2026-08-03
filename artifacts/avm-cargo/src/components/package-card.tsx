@@ -115,7 +115,7 @@ export function PackageCard({ pkg, onDelete, isAdmin, showTimeline = false }: Pa
             </span>
           )}
           
-          {onDelete && pkg.status === 'preparation' && (
+          {onDelete && !pkg.archived && (
             <Button
               variant="ghost"
               size="icon"

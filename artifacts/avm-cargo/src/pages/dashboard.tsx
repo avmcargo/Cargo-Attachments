@@ -67,14 +67,15 @@ export default function Dashboard() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Вы уверены, что хотите удалить этот трек?")) return;
+    if (!confirm("Переместить посылку в архив? История и данные сохранятся.")) return;
     
     deletePackage.mutate(
       { id },
       {
         onSuccess: () => {
-          toast({ title: "Удалено", description: "Трек успешно удален." });
+          toast({ title: "Посылка перемещена в архив", description: "История и данные посылки сохранены." });
           queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey({ archived: false }) });
+          queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey({ archived: true }) });
         }
       }
     );

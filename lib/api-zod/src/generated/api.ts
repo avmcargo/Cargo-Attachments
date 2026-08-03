@@ -336,13 +336,39 @@ export const UpdatePackageResponse = zod.object({
 
 
 /**
- * @summary Delete a package
+ * @summary Archive a package
  */
 export const DeletePackageParams = zod.object({
   "id": zod.coerce.number()
 })
 
-export const DeletePackageResponse = zod.void()
+export const DeletePackageResponse = zod.object({
+  "id": zod.number(),
+  "trackingNumber": zod.string(),
+  "description": zod.string().nullish(),
+  "weight": zod.number().nullish(),
+  "deliveryCost": zod.number().nullish(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "adminComment": zod.string().nullish(),
+  "archived": zod.boolean(),
+  "userId": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "user": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "role": zod.enum(['client', 'admin']),
+  "createdAt": zod.coerce.date()
+}).optional(),
+  "history": zod.array(zod.object({
+  "id": zod.number(),
+  "packageId": zod.number(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']),
+  "changedAt": zod.coerce.date(),
+  "changedBy": zod.number().nullish()
+})).optional()
+})
 
 
 /**
