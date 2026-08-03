@@ -60,6 +60,9 @@ export default function AdminDashboard() {
   const [importStatus, setImportStatus] = useState('preparation');
   const [importing, setImporting] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [manualTracking, setManualTracking] = useState('');
+  const [manualStatus, setManualStatus] = useState('preparation');
+  const [manualUpdating, setManualUpdating] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -83,14 +86,75 @@ export default function AdminDashboard() {
   const addStatus = useAddPackageStatus();
   const deletePackage = useDeletePackage();
 
-  const handleScannedNumber = useCallback((trackingNumber: string) => {
-    setSearch(trackingNumber);
-    setScannerOpen(false);
-    toast({
-      title: "Трек-номер распознан",
-      description: `${trackingNumber} подставлен в поиск.`,
-    });
-  }, [toast]);
+  const updateByTrackingNumber = useCallback(async (trackingNumber: string, status: string) => {
+    const normalizedTracking = trackingNumber.trim();
+    if (!normalizedTracking) return;
+
+    const response = await fetch(
+      `${import.meta.env.BASE_URL}api/packages?search=${encodeURIComponent(normalizedTracking)}`.replace('//', '/'),
+      { credentials: 'include' },
+    );
+    if (!response.ok) {
+      throw new Error('Не удалось выполнить поиск посылки');
+    }
+
+    const foundPackages = await response.json();
+    const pkg = foundPackages.find(
+      (item: any) => item.trackingNumber.toLowerCase() === normalizedTracking.toLowerCase(),
+    );
+    if (!pkg) {
+      throw new Error(`Посылка ${normalizedTracking} не найдена`);
+    }
+
+    await addStatus.mutateAsync({ id: pkg.id, data: { status: status as any } });
+    setSearch(normalizedTracking);
+    setStatusFilter('all');
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() }),
+      queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() }),
+    ]);
+    return pkg;
+  }, [addStatus, queryClient]);
+
+  const handleScannedNumber = useCallback(async (trackingNumber: string) => {
+    try {
+      await updateByTrackingNumber(trackingNumber, 'delivered');
+      setScannerOpen(false);
+      toast({
+        title: "Посылка доставлена",
+        description: `Трек-номер ${trackingNumber} переведён в статус «Доставлен».`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Посылка не найдена",
+        description: error.message || "Не удалось обновить статус.",
+      });
+    }
+  }, [toast, updateByTrackingNumber]);
+
+  const handleManualStatusUpdate = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const trackingNumber = manualTracking.trim();
+    if (!trackingNumber) return;
+
+    setManualUpdating(true);
+    try {
+      await updateByTrackingNumber(trackingNumber, manualStatus);
+      toast({
+        title: "Статус обновлён",
+        description: `${trackingNumber}: ${STATUS_LABELS[manualStatus as keyof typeof STATUS_LABELS]}`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: error.message || "Не удалось обновить статус.",
+      });
+    } finally {
+      setManualUpdating(false);
+    }
+  };
 
   const handleExport = async () => {
     try {
@@ -268,6 +332,46 @@ export default function AdminDashboard() {
 
       {/* Filters and List */}
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+        <form
+          onSubmit={handleManualStatusUpdate}
+          className="p-4 border-b border-border bg-muted/20"
+        >
+          <div className="mb-3">
+            <h2 className="font-bold">Ручной поиск и смена статуса</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Введите трек-номер, выберите статус и нажмите «Применить».
+            </p>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-3">
+            <Input
+              value={manualTracking}
+              onChange={(event) => setManualTracking(event.target.value)}
+              placeholder="Введите трек-номер"
+              className="flex-1 bg-background font-mono"
+              data-testid="input-manual-tracking"
+            />
+            <Select value={manualStatus} onValueChange={setManualStatus}>
+              <SelectTrigger className="w-full lg:w-72 bg-background">
+                <SelectValue placeholder="Выберите статус" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_ORDER.map(status => (
+                  <SelectItem key={status} value={status}>
+                    {STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="submit"
+              disabled={!manualTracking.trim() || manualUpdating}
+              className="lg:min-w-44"
+              data-testid="btn-manual-status"
+            >
+              {manualUpdating ? "Обновление…" : "Применить статус"}
+            </Button>
+          </div>
+        </form>
         <div className="p-4 border-b border-border flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
