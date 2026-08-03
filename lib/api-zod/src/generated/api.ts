@@ -128,7 +128,8 @@ export const CreatePackageBody = zod.object({
   "description": zod.string().nullish(),
   "weight": zod.number().nullish(),
   "deliveryCost": zod.number().nullish(),
-  "userId": zod.number().nullish()
+  "userId": zod.number().nullish(),
+  "status": zod.enum(['preparation', 'sent_china', 'customs', 'arrived_almaty', 'courier', 'delivered']).optional()
 })
 
 export const CreatePackageResponse = zod.object({

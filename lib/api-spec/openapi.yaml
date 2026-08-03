@@ -461,6 +461,8 @@ components:
           type: ["number", "null"]
         userId:
           type: ["number", "null"]
+        status:
+          $ref: "#/components/schemas/PackageStatus"
 
     PackageUpdate:
       type: object

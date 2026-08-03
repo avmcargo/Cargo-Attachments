@@ -130,8 +130,9 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
     return;
   }
 
-  const { trackingNumber, description, weight, deliveryCost, userId } = parsed.data;
+  const { trackingNumber, description, weight, deliveryCost, userId, status } = parsed.data;
   const targetUserId = user.role === "admin" && userId ? userId : user.id;
+  const targetStatus = user.role === "admin" && status ? status : "preparation";
 
   // Check if tracking number already exists
   const [existing] = await db
@@ -176,7 +177,8 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
       description: description ?? null,
       weight: weight ?? null,
       deliveryCost: deliveryCost ?? null,
-      status: "preparation",
+      status: targetStatus,
+      archived: targetStatus === "delivered",
       userId: targetUserId,
     })
     .returning();
@@ -184,7 +186,7 @@ router.post("/packages", requireAuth, async (req: Request, res): Promise<void> =
   // Add initial history entry
   await db.insert(packageHistoryTable).values({
     packageId: pkg.id,
-    status: "preparation",
+    status: targetStatus,
     changedBy: user.id,
   });
 

@@ -6,6 +6,7 @@ import {
   useExportPackages,
   useAddPackageStatus,
   useDeletePackage,
+  useCreatePackage,
 } from '@workspace/api-client-react';
 import { getGetStatsQueryKey, getListPackagesQueryKey, getExportPackagesQueryKey } from '@workspace/api-client-react';
 import { PackageCard } from '@/components/package-card';
@@ -85,6 +86,7 @@ export default function AdminDashboard() {
   const updatePackage = useUpdatePackage();
   const addStatus = useAddPackageStatus();
   const deletePackage = useDeletePackage();
+  const createPackage = useCreatePackage();
 
   const updateByTrackingNumber = useCallback(async (trackingNumber: string, status: string) => {
     const normalizedTracking = trackingNumber.trim();
@@ -103,7 +105,19 @@ export default function AdminDashboard() {
       (item: any) => item.trackingNumber.toLowerCase() === normalizedTracking.toLowerCase(),
     );
     if (!pkg) {
-      throw new Error(`Посылка ${normalizedTracking} не найдена`);
+      const createdPackage = await createPackage.mutateAsync({
+        data: {
+          trackingNumber: normalizedTracking,
+          status: status as any,
+        },
+      });
+      setSearch(normalizedTracking);
+      setStatusFilter('all');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() }),
+        queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() }),
+      ]);
+      return createdPackage;
     }
 
     await addStatus.mutateAsync({ id: pkg.id, data: { status: status as any } });
@@ -114,7 +128,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() }),
     ]);
     return pkg;
-  }, [addStatus, queryClient]);
+  }, [addStatus, createPackage, queryClient]);
 
   const handleScannedNumber = useCallback(async (trackingNumber: string) => {
     try {
@@ -127,8 +141,8 @@ export default function AdminDashboard() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Посылка не найдена",
-        description: error.message || "Не удалось обновить статус.",
+        title: "Ошибка сканирования",
+        description: error.message || "Не удалось сохранить статус.",
       });
     }
   }, [toast, updateByTrackingNumber]);
@@ -142,7 +156,7 @@ export default function AdminDashboard() {
     try {
       await updateByTrackingNumber(trackingNumber, manualStatus);
       toast({
-        title: "Статус обновлён",
+        title: "Посылка сохранена",
         description: `${trackingNumber}: ${STATUS_LABELS[manualStatus as keyof typeof STATUS_LABELS]}`,
       });
     } catch (error: any) {

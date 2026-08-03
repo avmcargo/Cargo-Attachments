@@ -5,6 +5,7 @@
  * AVM CARGO API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { PackageStatus } from './packageStatus';
 
 export interface PackageInput {
   /** @minLength 1 */
@@ -17,4 +18,5 @@ export interface PackageInput {
   deliveryCost?: number | null;
   /** @nullable */
   userId?: number | null;
+  status?: PackageStatus;
 }

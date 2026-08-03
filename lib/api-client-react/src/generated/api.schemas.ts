@@ -74,6 +74,7 @@ export interface PackageInput {
   deliveryCost?: number | null;
   /** @nullable */
   userId?: number | null;
+  status?: PackageStatus;
 }
 
 export interface PackageUpdate {
