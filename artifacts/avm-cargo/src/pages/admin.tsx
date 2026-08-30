@@ -243,8 +243,9 @@ export default function AdminDashboard() {
     formData.append('date', importDate);
 
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}api/packages/import`.replace('//', '/'), {
-        method: 'POST',
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/packages/import`,
+        {
         body: formData,
         credentials: 'include',
       });
