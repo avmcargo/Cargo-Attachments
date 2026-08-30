@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     if (!normalizedTracking) return;
 
     const response = await fetch(
-      `${import.meta.env.BASE_URL}api/packages?search=${encodeURIComponent(normalizedTracking)}`.replace('//', '/'),
+      `${import.meta.env.VITE_API_URL}/api/packages?search=${encodeURIComponent(normalizedTracking)}`,
       { credentials: 'include' },
     );
     if (!response.ok) {
