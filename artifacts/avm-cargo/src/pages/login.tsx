@@ -50,14 +50,14 @@ export default function Login() {
     loginMutation.mutate(
       { data },
       {
-        onSuccess: (res) => {
-          refetchMe();
-          if (res.user.role === 'admin') {
-            setLocation('/admin');
-          } else {
-            setLocation('/dashboard');
-          }
-        },
+        onSuccess: async (res) => {
+  await refetchMe();
+  if (res.user.role === 'admin') {
+    setLocation('/admin');
+  } else {
+    setLocation('/dashboard');
+  }
+},
         onError: (error: any) => {
           toast({
             variant: "destructive",
